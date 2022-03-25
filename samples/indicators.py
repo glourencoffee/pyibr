@@ -1,4 +1,4 @@
-"""Indicators Sample
+"""Indicators Sample.
 
 Usage:
   indicators <dfpitr>
@@ -10,9 +10,8 @@ Options:
 
 import docopt
 import icvm
-import pprint
-import sys
 import time
+import sys
 import zipfile
 
 def main():

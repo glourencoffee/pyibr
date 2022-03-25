@@ -1,10 +1,24 @@
+"""Valuation Sample.
+
+Usage:
+  indicators <dfpitr>
+  indicators --help
+
+Options:
+  --help  Show this screen.
+"""
+
+import docopt
+import icvm
 import sys
 import zipfile
-import icvm
-import pprint
 
 def main():
-    with zipfile.ZipFile(sys.argv[1]) as file:
+    args = docopt.docopt(__doc__)
+
+    filepath = args['<dfpitr>']
+
+    with zipfile.ZipFile(filepath) as file:
         reader = icvm.reader(file, [icvm.YfinanceValuation])
 
         for res in reader:
