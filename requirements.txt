@@ -1,0 +1,6 @@
+yfinance
+pandas
+openpyxl
+docopt
+b3
+cvm
