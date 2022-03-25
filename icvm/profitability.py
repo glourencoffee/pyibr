@@ -27,8 +27,8 @@ class Profitability(collection.IndicatorCollection):
         gross_debt = bpp.current_loans_and_financing + bpp.noncurrent_loans_and_financing
 
         return Profitability(
-            roe            = dre.net_profit / bpp.net_equity,
-            roa            = dre.net_profit / bpa.total_assets,
-            roic           = (dre.operating_profit - dre.tax_expenses) / (bpp.net_equity + gross_debt),
-            asset_turnover = dre.net_revenue / bpa.total_assets
+            roe            = utils.zero_safe_divide(dre.net_profit,              bpp.net_equity),
+            roa            = utils.zero_safe_divide(dre.net_profit,              bpa.total_assets),
+            roic           = utils.zero_safe_divide(dre.ebit - dre.tax_expenses, bpp.net_equity + gross_debt),
+            asset_turnover = utils.zero_safe_divide(dre.net_revenue,             bpa.total_assets)
         )

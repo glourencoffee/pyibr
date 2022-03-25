@@ -40,11 +40,11 @@ class Indebtedness(collection.IndicatorCollection):
         total_liabilities = bpp.current_liabilities + bpp.noncurrent_liabilities
 
         return Indebtedness(
-            general_debt              = utils.zero_safe_divide(total_liabilities, bpa.total_assets),
+            general_debt              = utils.zero_safe_divide(total_liabilities,       bpa.total_assets),
             debt_composition          = utils.zero_safe_divide(bpp.current_liabilities, total_liabilities),
-            net_debt_over_net_equity  = utils.zero_safe_divide(net_debt, bpp.net_equity),
-            net_debt_over_ebitda      = utils.zero_safe_divide(net_debt, dre.operating_result) if dre.operating_result is not None else None,
-            net_debt_over_ebit        = utils.zero_safe_divide(net_debt, dre.operating_profit),
-            net_equity_over_assets    = utils.zero_safe_divide(bpp.net_equity, bpa.total_assets),
-            cassets_over_cliabilities = utils.zero_safe_divide(bpa.current_assets, bpp.current_liabilities)
+            net_debt_over_net_equity  = utils.zero_safe_divide(net_debt,                bpp.net_equity),
+            net_debt_over_ebitda      = utils.none_safe_divide(net_debt,                dre.operating_result),
+            net_debt_over_ebit        = utils.zero_safe_divide(net_debt,                dre.operating_profit),
+            net_equity_over_assets    = utils.zero_safe_divide(bpp.net_equity,          bpa.total_assets),
+            cassets_over_cliabilities = utils.zero_safe_divide(bpa.current_assets,      bpp.current_liabilities)
         )

@@ -25,7 +25,7 @@ class Efficiency(collection.IndicatorCollection):
 
         return Efficiency(
             gross_margin  = utils.zero_safe_divide(dre.gross_profit, dre.net_revenue),
-            ebitda_margin = utils.zero_safe_divide(dre.ebitda,       dre.net_revenue) if dre.ebitda is not None else None,
+            ebitda_margin = utils.none_safe_divide(dre.ebitda,       dre.net_revenue),
             ebit_margin   = utils.zero_safe_divide(dre.ebit,         dre.net_revenue),
             net_margin    = utils.zero_safe_divide(dre.net_profit,   dre.net_revenue)
         )
