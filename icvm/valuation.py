@@ -88,7 +88,7 @@ class Valuation(collection.IndicatorCollection):
             enterprise_value      = ev,
             earnings_per_share    = utils.zero_safe_divide(net_profit,     outstanding_shares),
             book_value_per_share  = utils.zero_safe_divide(bpp.net_equity, outstanding_shares),
-            ev_ebitda             = utils.zero_safe_divide(ev, dre.ebitda) if dre.ebitda is not None else None,
+            ev_ebitda             = utils.none_safe_divide(ev, dre.ebitda),
             ev_ebit               = utils.zero_safe_divide(ev, dre.ebit)
         )
 
