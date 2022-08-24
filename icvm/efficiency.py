@@ -1,12 +1,12 @@
 from __future__ import annotations
+import cvm
 import dataclasses
 import decimal
 import typing
-from cvm  import balances, datatypes
-from icvm import collection, utils
+from icvm import utils
 
-@dataclasses.dataclass(init=True, frozen=True)
-class Efficiency(collection.IndicatorCollection):
+@dataclasses.dataclass(init=True)
+class Efficiency:
     gross_margin: decimal.Decimal
     """Margem Bruta"""
 
@@ -19,13 +19,13 @@ class Efficiency(collection.IndicatorCollection):
     net_margin: decimal.Decimal
     """Margem Líquida"""
 
-    @classmethod
-    def from_industrial(cls, dfpitr: datatypes.BalanceType, industrial: balances.IndustrialCollection) -> Efficiency:
-        dre = industrial.dre
+    @staticmethod
+    def from_statement(income_statement: cvm.balances.IncomeStatement) -> Efficiency:
+        i = income_statement
 
         return Efficiency(
-            gross_margin  = utils.zero_safe_divide(dre.gross_profit, dre.net_revenue),
-            ebitda_margin = utils.none_safe_divide(dre.ebitda,       dre.net_revenue),
-            ebit_margin   = utils.zero_safe_divide(dre.ebit,         dre.net_revenue),
-            net_margin    = utils.zero_safe_divide(dre.net_profit,   dre.net_revenue)
+            gross_margin  = utils.zero_safe_divide(i.gross_profit, i.revenue),
+            ebitda_margin = utils.none_safe_divide(i.ebitda,       i.revenue),
+            ebit_margin   = utils.zero_safe_divide(i.ebit,         i.revenue),
+            net_margin    = utils.zero_safe_divide(i.net_income,   i.revenue)
         )

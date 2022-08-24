@@ -1,4 +1,4 @@
-from icvm.collection    import IndicatorCollection
+import icvm.utils
 from icvm.indebtedness  import Indebtedness
 from icvm.efficiency    import Efficiency
 from icvm.profitability import Profitability

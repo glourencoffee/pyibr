@@ -1,13 +1,15 @@
+from __future__ import annotations
 from b3.net.query import get_detail # FIXME: fix import when b3 library gets published
+import cvm
 import dataclasses
+import datetime
 import decimal
 import typing
 import yfinance as yf
-from cvm  import balances, datatypes, exceptions
-from icvm import collection, utils
+from icvm import utils
 
-@dataclasses.dataclass(init=True, frozen=True)
-class Valuation(collection.IndicatorCollection):
+@dataclasses.dataclass(init=True)
+class Valuation:
     ticker: str
     """'Código de negociação'"""
 
@@ -60,42 +62,47 @@ class Valuation(collection.IndicatorCollection):
         return self.book_value_per_share
 
     @classmethod
-    def market_data(cls, dfpitr: datatypes.BalanceType) -> typing.Tuple[str, decimal.Decimal, int]:
-        raise exceptions.NotImplementedException(cls, 'market_data')
+    def market_data(cls, cvm_code: int, reference_date: datetime.date) -> typing.Iterable[typing.Tuple[str, decimal.Decimal, int]]:
+        raise NotImplementedError(f"method 'market_data' of {cls}")
 
     @classmethod
-    def from_industrial(cls, dfpitr: datatypes.BalanceType, industrial: balances.IndustrialCollection):
-        bpa = industrial.bpa
-        bpp = industrial.bpp
-        dre = industrial.dre
+    def from_statement(cls,
+                       cvm_code: int,
+                       reference_date: datetime.date,
+                       balance_sheet: cvm.balances.BalanceSheet,
+                       income_statement: cvm.balances.IncomeStatement
+    ) -> typing.List[Valuation]:
+        b = balance_sheet
+        i = income_statement
+
+        # Off-market data
+        net_debt = b.net_debt or 0
+        valuations = []
 
         # Market data
-        ticker, quote, outstanding_shares = cls.market_data(dfpitr)
-        
-        # Off-market data
-        gross_debt = bpp.current_loans_and_financing + bpp.noncurrent_loans_and_financing
-        net_profit = dre.net_profit
+        for ticker, quote, outstanding_shares in cls.market_data(cvm_code, reference_date):
+            market_cap = quote * outstanding_shares
+            ev         = market_cap + net_debt
 
-        # Indicators
-        market_cap = quote * outstanding_shares
-        ev         = market_cap + gross_debt - bpa.cash_and_cash_equivalents
+            valuations.append(
+                Valuation(
+                    ticker                = ticker,
+                    quote                 = quote,
+                    outstanding_shares    = outstanding_shares,
+                    market_capitalization = market_cap,
+                    enterprise_value      = ev,
+                    earnings_per_share    = utils.zero_safe_divide(i.net_income, outstanding_shares),
+                    book_value_per_share  = utils.zero_safe_divide(b.equity,     outstanding_shares),
+                    ev_ebitda             = utils.none_safe_divide(ev,           i.ebitda),
+                    ev_ebit               = utils.zero_safe_divide(ev,           i.ebit)
+                ))
 
-        return Valuation(
-            ticker                = ticker,
-            quote                 = quote,
-            outstanding_shares    = outstanding_shares,
-            market_capitalization = market_cap,
-            enterprise_value      = ev,
-            earnings_per_share    = utils.zero_safe_divide(net_profit,     outstanding_shares),
-            book_value_per_share  = utils.zero_safe_divide(bpp.net_equity, outstanding_shares),
-            ev_ebitda             = utils.none_safe_divide(ev, dre.ebitda),
-            ev_ebit               = utils.zero_safe_divide(ev, dre.ebit)
-        )
+        return valuations
 
 class YfinanceValuation(Valuation):
     @staticmethod
     def market_data_from_ticker(ticker: str, reference_year: int) -> typing.Optional[typing.Tuple[float, int]]:
-        start  = f'{reference_year}-12-21'
+        start  = f'{reference_year}-01-01'
         end    = f'{reference_year}-12-31'
 
         quotes = yf.download(ticker, start=start, end=end)
@@ -107,6 +114,9 @@ class YfinanceValuation(Valuation):
         ticker = yf.Ticker(ticker)
 
         try:
+            # Yahoo Finance only stores `sharesOutstanding` for the last
+            # quarterly statement provided by the company, so `reference_year`
+            # will be ignored...
             outstanding_shares = int(ticker.info['sharesOutstanding'])
         except KeyError:
             return None
@@ -114,29 +124,16 @@ class YfinanceValuation(Valuation):
         return quote, outstanding_shares
 
     @classmethod
-    def market_data(cls, dfpitr: datatypes.BalanceType) -> typing.Tuple[str, decimal.Decimal, int]:
-        co = get_detail(dfpitr.cvm_code)
-
-        quote = 0
-        outstanding_shares = 0
+    def market_data(cls, cvm_code: int, reference_date: datetime.date) -> typing.Iterable[typing.Tuple[str, decimal.Decimal, int]]:
+        co = get_detail(cvm_code)
 
         for ticker in co.tickers():
-            data = YfinanceValuation.market_data_from_ticker(ticker + '.SA', dfpitr.reference_date.year)
+            data = YfinanceValuation.market_data_from_ticker(ticker + '.SA', reference_date.year)
 
             if data is None:
                 continue
 
-            # A company may have shares distributed to many instruments, each of which having
-            # a different ticker. For example, the Brazilian company ELETROBRAS has 3 tickers
-            # on B3: ELET3, ELET5, and ELET6. In order to get the number of outstanding shares
-            # of ELETROBRAS, we must sum the outstanding shares in ELE3, ELET5, and ELET6.
-            #
-            # As for the quote price, each instrument may have a different price, so we choose
-            # only the main one, that is, the quote price of `co.trading_code`.
+            quote              = data[0]
+            outstanding_shares = data[1]
 
-            if ticker == co.trading_code:
-                quote = data[0]
-
-            outstanding_shares += data[1]
-
-        return (co.trading_code, decimal.Decimal(quote), outstanding_shares)
+            yield (ticker, decimal.Decimal(quote), outstanding_shares)

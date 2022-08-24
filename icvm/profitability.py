@@ -1,11 +1,11 @@
 from __future__ import annotations
+import cvm
 import dataclasses
 import decimal
-from cvm  import balances, datatypes
-from icvm import collection, utils
+from icvm import utils
 
-@dataclasses.dataclass(init=True, frozen=True)
-class Profitability(collection.IndicatorCollection):
+@dataclasses.dataclass(init=True)
+class Profitability:
     roe: decimal.Decimal
     """Return on Equity."""
 
@@ -18,17 +18,21 @@ class Profitability(collection.IndicatorCollection):
     asset_turnover: decimal.Decimal
     """'Giro de Ativo'"""
 
-    @classmethod
-    def from_industrial(cls, dfpitr: datatypes.BalanceType, industrial: balances.IndustrialCollection) -> Profitability:
-        bpa = industrial.bpa
-        bpp = industrial.bpp
-        dre = industrial.dre
+    @staticmethod
+    def from_statement(balance_sheet: cvm.balances.BalanceSheet,
+                       income_statement: cvm.balances.IncomeStatement
+    ) -> Profitability:
+        b = balance_sheet
+        i = income_statement
 
-        gross_debt = bpp.current_loans_and_financing + bpp.noncurrent_loans_and_financing
+        if b.gross_debt is None:
+            equity_plus_gross_debt = None
+        else:
+            equity_plus_gross_debt = b.equity + b.gross_debt
 
         return Profitability(
-            roe            = utils.zero_safe_divide(dre.net_profit,              bpp.net_equity),
-            roa            = utils.zero_safe_divide(dre.net_profit,              bpa.total_assets),
-            roic           = utils.zero_safe_divide(dre.ebit - dre.tax_expenses, bpp.net_equity + gross_debt),
-            asset_turnover = utils.zero_safe_divide(dre.net_revenue,             bpa.total_assets)
+            roe            = utils.zero_safe_divide(i.net_income,            b.equity),
+            roa            = utils.zero_safe_divide(i.net_income,            b.total_assets),
+            roic           = utils.none_safe_divide(i.ebit - i.tax_expenses, equity_plus_gross_debt),
+            asset_turnover = utils.zero_safe_divide(i.revenue,               b.total_assets)
         )
