@@ -1,9 +1,10 @@
+import cvm
 import dataclasses
 import datetime
-import cvm
+import icvm
+import os
 import typing
 import zipfile
-import icvm
 
 Indicator = typing.Union[icvm.Indebtedness, icvm.Efficiency, icvm.Profitability, icvm.Valuation]
 
@@ -29,13 +30,13 @@ def from_statement(cvm_code: int,
         elif issubclass(cls, icvm.Efficiency):
             indicators.append(cls.from_statement(income_statement))
         elif issubclass(cls, icvm.Valuation):
-            indicators += cls.from_statement(cvm_code, reference_date, balance_sheet, income_statement)
+            indicators.append(cls.from_statement(cvm_code, reference_date, balance_sheet, income_statement))
         else:
-            continue
+            raise TypeError(f'{cls} is not an indicator class')
 
     return indicators
 
-def reader(file: zipfile.ZipFile,
+def reader(file: typing.Union[zipfile.ZipFile, typing.IO, os.PathLike, str],
            indicator_types: typing.Iterable[typing.Type[Indicator]],
            flag: cvm.csvio.BalanceFlag = cvm.csvio.BalanceFlag.INDIVIDUAL|cvm.csvio.BalanceFlag.CONSOLIDATED
 ) -> Reader:

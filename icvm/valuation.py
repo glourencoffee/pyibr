@@ -1,5 +1,5 @@
 from __future__ import annotations
-from b3.net.query import get_detail # FIXME: fix import when b3 library gets published
+import b3
 import cvm
 import dataclasses
 import datetime
@@ -125,15 +125,14 @@ class YfinanceValuation(Valuation):
 
     @classmethod
     def market_data(cls, cvm_code: int, reference_date: datetime.date) -> typing.Iterable[typing.Tuple[str, decimal.Decimal, int]]:
-        co = get_detail(cvm_code)
+        co = b3.net.query_company(cvm_code)
 
-        for ticker in co.tickers():
-            data = YfinanceValuation.market_data_from_ticker(ticker + '.SA', reference_date.year)
+        for codes in co.security_codes:
+            data = YfinanceValuation.market_data_from_ticker(codes.ticker + '.SA', reference_date.year)
 
             if data is None:
                 continue
 
-            quote              = data[0]
-            outstanding_shares = data[1]
+            quote, outstanding_shares = data
 
-            yield (ticker, decimal.Decimal(quote), outstanding_shares)
+            yield (codes.ticker, decimal.Decimal(quote), outstanding_shares)
