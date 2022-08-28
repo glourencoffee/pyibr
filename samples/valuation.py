@@ -1,35 +1,25 @@
-"""Valuation Sample.
-
-Usage:
-  indicators <dfpitr>
-  indicators --help
-
-Options:
-  --help  Show this screen.
-"""
-
 import cvm
-import docopt
 import icvm
 import pandas as pd
 import sys
-import zipfile
 
 def main():
-    args = docopt.docopt(__doc__)
+    if len(sys.argv) < 2:
+        print('usage: indicators.py <dfpitr>')
+        return 1
+    
+    filepath = sys.argv[1]
 
-    filepath = args['<dfpitr>']
-
-    with zipfile.ZipFile(filepath) as file:
-        reader = icvm.reader(file, [icvm.YfinanceValuation], flag=cvm.csvio.BalanceFlag.CONSOLIDATED)
-
-        for res in reader:
-            for valuation in res.indicators:
+    try:
+        for result in icvm.reader(filepath, [icvm.YfinanceValuation], flag=cvm.csvio.BalanceFlag.CONSOLIDATED):
+            for valuation in result.indicators[0]:
                 print('------------------')
-                print('Company:', res.dfpitr.company_name)
-                
+                print('Company:', result.dfpitr.company_name)
+
                 print('\nValuation:')
                 print(pd.DataFrame([valuation]).transpose()[0].to_string())
+    except KeyboardInterrupt:
+        pass
 
     return 0
 
