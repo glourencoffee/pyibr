@@ -3,7 +3,7 @@ import cvm
 import dataclasses
 import decimal
 import typing
-from icvm.utils import zero_safe_divide, none_safe_divide
+from ibr.utils import zero_safe_divide, none_safe_divide
 
 @dataclasses.dataclass(init=True)
 class Efficiency:
