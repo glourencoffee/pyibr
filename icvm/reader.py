@@ -10,16 +10,16 @@ Indicator = typing.Union[icvm.Indebtedness, icvm.Efficiency, icvm.Profitability,
 
 @dataclasses.dataclass(init=True)
 class ReaderResult:
-    dfpitr: cvm.datatypes.DFPITR
-    balance_type: cvm.datatypes.BalanceType
+    dfpitr: cvm.DFPITR
+    balance_type: cvm.BalanceType
     indicators: typing.List[Indicator]
 
 Reader = typing.Generator[ReaderResult, None, None]
 
 def from_statement(cvm_code: int,
                    reference_date: datetime.date,
-                   balance_sheet: cvm.balances.BalanceSheet,
-                   income_statement: cvm.balances.IncomeStatement,
+                   balance_sheet: cvm.BalanceSheet,
+                   income_statement: cvm.IncomeStatement,
                    indicator_types: typing.Iterable[typing.Type[Indicator]]
 ) -> typing.List[Indicator]:
     indicators = []
@@ -37,28 +37,25 @@ def from_statement(cvm_code: int,
     return indicators
 
 def reader(file: typing.Union[zipfile.ZipFile, typing.IO, os.PathLike, str],
-           indicator_types: typing.Iterable[typing.Type[Indicator]],
-           flag: cvm.csvio.BalanceFlag = cvm.csvio.BalanceFlag.INDIVIDUAL|cvm.csvio.BalanceFlag.CONSOLIDATED
+           indicator_types: typing.Iterable[typing.Type[Indicator]]
 ) -> Reader:
 
-    dfpitr_reader   = cvm.csvio.dfpitr_reader(file, flag)
+    dfpitr_reader   = cvm.dfpitr_reader(file, cvm.BalanceFlag.CONSOLIDATED)
     indicator_types = tuple(indicator_types)
 
     for dfpitr in dfpitr_reader:
-        for balance_type in cvm.datatypes.BalanceType:
+        try:
+            balance_sheet    = cvm.BalanceSheet.from_dfpitr(dfpitr)
+            income_statement = cvm.IncomeStatement.from_dfpitr(dfpitr)
+        except ValueError:
+            continue
+        else:
+            indicators = from_statement(
+                dfpitr.cvm_code,
+                dfpitr.reference_date,
+                balance_sheet,
+                income_statement,
+                indicator_types
+            )
 
-            try:
-                balance_sheet    = cvm.balances.BalanceSheet.from_document(dfpitr, balance_type)
-                income_statement = cvm.balances.IncomeStatement.from_document(dfpitr, balance_type)
-            except KeyError:
-                continue
-            else:
-                indicators = from_statement(
-                    dfpitr.cvm_code,
-                    dfpitr.reference_date,
-                    balance_sheet,
-                    income_statement,
-                    indicator_types
-                )
-
-                yield ReaderResult(dfpitr, balance_type, indicators)
+            yield ReaderResult(dfpitr, cvm.BalanceType.CONSOLIDATED, indicators)

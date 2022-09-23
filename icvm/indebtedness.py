@@ -3,7 +3,7 @@ import dataclasses
 import decimal
 import typing
 import cvm
-from icvm import utils
+from icvm.utils import zero_safe_divide, none_safe_divide
 
 @dataclasses.dataclass(init=True)
 class Indebtedness:
@@ -29,18 +29,16 @@ class Indebtedness:
     """'Ativo/Passivo'"""
 
     @staticmethod
-    def from_statement(balance_sheet: cvm.balances.BalanceSheet,
-                       income_statement: cvm.balances.IncomeStatement
-    ) -> Indebtedness:
+    def from_statement(balance_sheet: cvm.BalanceSheet, income_statement: cvm.IncomeStatement) -> Indebtedness:
         b = balance_sheet
         i = income_statement
 
         return Indebtedness(
-            general_debt         = utils.zero_safe_divide(b.total_liabilities,   b.total_assets),
-            debt_composition     = utils.none_safe_divide(b.current_liabilities, b.total_liabilities),
-            net_debt_to_equity   = utils.none_safe_divide(b.net_debt,            b.equity),
-            net_debt_to_ebitda   = utils.none_safe_divide(b.net_debt,            i.ebitda),
-            net_debt_to_ebit     = utils.none_safe_divide(b.net_debt,            i.ebit),
-            net_equity_to_assets = utils.zero_safe_divide(b.equity,              b.total_assets),
-            current_ratio        = utils.none_safe_divide(b.current_assets,      b.current_liabilities)
+            general_debt         = zero_safe_divide(b.total_liabilities,   b.total_assets),
+            debt_composition     = none_safe_divide(b.current_liabilities, b.total_liabilities),
+            net_debt_to_equity   = none_safe_divide(b.net_debt,            b.equity),
+            net_debt_to_ebitda   = none_safe_divide(b.net_debt,            i.ebitda),
+            net_debt_to_ebit     = none_safe_divide(b.net_debt,            i.ebit),
+            net_equity_to_assets = zero_safe_divide(b.equity,              b.total_assets),
+            current_ratio        = none_safe_divide(b.current_assets,      b.current_liabilities)
         )
