@@ -1,4 +1,3 @@
-import cvm
 import icvm
 import pandas as pd
 import sys
@@ -11,7 +10,7 @@ def main():
     filepath = sys.argv[1]
 
     try:
-        for result in icvm.reader(filepath, [icvm.YfinanceValuation], flag=cvm.csvio.BalanceFlag.CONSOLIDATED):
+        for result in icvm.reader(filepath, [icvm.YfinanceValuation]):
             for valuation in result.indicators[0]:
                 print('------------------')
                 print('Company:', result.dfpitr.company_name)

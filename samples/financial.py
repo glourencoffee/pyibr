@@ -2,7 +2,6 @@ import icvm
 import pandas as pd
 import time
 import sys
-import zipfile
 
 def print_indicator(i):
     print(f'\n{i.__class__.__name__}:')
