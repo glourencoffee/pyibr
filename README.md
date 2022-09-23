@@ -1,10 +1,10 @@
 # Sobre
 
-`icvm` é uma biblioteca Python que calcula os indicadores de análise
+`ibr` é uma biblioteca Python que calcula os indicadores de análise
 fundamentalista de companhias registradas na CVM.
 
 O motivo para a criação dessa biblioteca é que coisas da CVM devem
-pertencer à biblioteca [cvm][cvm-lib], ao passo que indicadores fundamentalistas,
+pertencer à biblioteca [cvm][repo-pycvm], ao passo que indicadores fundamentalistas,
 na medida em que são algo maior do que a CVM, devem ser separados.
 
 Além do mais, indicadores de valuation dependem de dados de mercado,
@@ -19,9 +19,9 @@ O código abaixo abre um documento DFP/ITR e lista os indicadores
 financeiros das companhias nesse documento:
 
 ```py
-import icvm
+import ibr
 
-for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', (icvm.Indebtedness, icvm.Profitability, icvm.Efficiency)):
+for result in ibr.reader('/caminho/para/dfp_ou_itr.zip', (ibr.Indebtedness, ibr.Profitability, ibr.Efficiency)):
     indebtedness, profitability, efficiency = result.indicators
 
     print('----------------------------')
@@ -43,13 +43,13 @@ Quanto a indicadores de valuation, eles precisam de dados de mercado. Visto
 que eles não são fornecidos num arquivo DFP/ITR, pois estão além do escopo
 da CVM, eles devem ser obtidos da internet ou alguma outra fonte.
 
-Para isso, a biblioteca `icvm` fornece a classe `YfinanceValuation`, que é
-baseada nas bibliotecas [yfinance][yfinance-lib] e [b3][b3-lib]:
+Para isso, a biblioteca `ibr` fornece a classe `YfinanceValuation`, que é
+baseada nas bibliotecas [b3][repo-pybov] e [yfinance][repo-yfinance]:
 
 ```py
-import icvm
+import ibr
 
-for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', [icvm.YfinanceValuation]):
+for result in ibr.reader('/caminho/para/dfp_ou_itr.zip', [ibr.YfinanceValuation]):
     print('------------------')
     print('Companhia:', result.dfpitr.company_name)
     
@@ -79,6 +79,6 @@ python -m samples.financial '/caminho/para/dfp_ou_itr.zip'
 python -m samples.valuation '/caminho/para/dfp_ou_itr.zip'
 ```
 
-  [cvm-lib]: <https://github.com/callmegiorgio/cvm>
-  [yfinance-lib]: <https://pypi.org/project/yfinance/>
-  [b3-lib]: <https://github.com/callmegiorgio/b3>
+  [repo-pycvm]: <https://github.com/callmegiorgio/pycvm>
+  [repo-pybov]: <https://github.com/callmegiorgio/pybov>
+  [repo-yfinance]: <https://pypi.org/project/yfinance/>
