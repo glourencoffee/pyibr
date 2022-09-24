@@ -1,3 +1,3 @@
-b3
-cvm
+pycvm>=0.3.2
+pybov>=0.1.1
 yfinance
