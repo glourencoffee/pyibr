@@ -6,7 +6,7 @@ import datetime
 import decimal
 import typing
 import yfinance as yf
-from icvm import utils
+from ibr.utils import zero_safe_divide, none_safe_divide
 
 @dataclasses.dataclass(init=True)
 class Valuation:
@@ -69,8 +69,8 @@ class Valuation:
     def from_statement(cls,
                        cvm_code: int,
                        reference_date: datetime.date,
-                       balance_sheet: cvm.balances.BalanceSheet,
-                       income_statement: cvm.balances.IncomeStatement
+                       balance_sheet: cvm.BalanceSheet,
+                       income_statement: cvm.IncomeStatement
     ) -> typing.List[Valuation]:
         b = balance_sheet
         i = income_statement
@@ -91,10 +91,10 @@ class Valuation:
                     outstanding_shares    = outstanding_shares,
                     market_capitalization = market_cap,
                     enterprise_value      = ev,
-                    earnings_per_share    = utils.zero_safe_divide(i.net_income, outstanding_shares),
-                    book_value_per_share  = utils.zero_safe_divide(b.equity,     outstanding_shares),
-                    ev_ebitda             = utils.none_safe_divide(ev,           i.ebitda),
-                    ev_ebit               = utils.zero_safe_divide(ev,           i.ebit)
+                    earnings_per_share    = zero_safe_divide(i.net_income, outstanding_shares),
+                    book_value_per_share  = zero_safe_divide(b.equity,     outstanding_shares),
+                    ev_ebitda             = none_safe_divide(ev,           i.ebitda),
+                    ev_ebit               = zero_safe_divide(ev,           i.ebit)
                 ))
 
         return valuations
@@ -125,7 +125,7 @@ class YfinanceValuation(Valuation):
 
     @classmethod
     def market_data(cls, cvm_code: int, reference_date: datetime.date) -> typing.Iterable[typing.Tuple[str, decimal.Decimal, int]]:
-        co = b3.net.query_company(cvm_code)
+        co = b3.company_detail(cvm_code)
 
         for codes in co.security_codes:
             data = YfinanceValuation.market_data_from_ticker(codes.ticker + '.SA', reference_date.year)

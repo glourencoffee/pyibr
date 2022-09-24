@@ -3,7 +3,7 @@ import cvm
 import dataclasses
 import decimal
 import typing
-from icvm import utils
+from ibr.utils import zero_safe_divide, none_safe_divide
 
 @dataclasses.dataclass(init=True)
 class Efficiency:
@@ -20,12 +20,12 @@ class Efficiency:
     """Margem Líquida"""
 
     @staticmethod
-    def from_statement(income_statement: cvm.balances.IncomeStatement) -> Efficiency:
+    def from_statement(income_statement: cvm.IncomeStatement) -> Efficiency:
         i = income_statement
 
         return Efficiency(
-            gross_margin  = utils.zero_safe_divide(i.gross_profit, i.revenue),
-            ebitda_margin = utils.none_safe_divide(i.ebitda,       i.revenue),
-            ebit_margin   = utils.zero_safe_divide(i.ebit,         i.revenue),
-            net_margin    = utils.zero_safe_divide(i.net_income,   i.revenue)
+            gross_margin  = zero_safe_divide(i.gross_profit, i.revenue),
+            ebitda_margin = none_safe_divide(i.ebitda,       i.revenue),
+            ebit_margin   = zero_safe_divide(i.ebit,         i.revenue),
+            net_margin    = zero_safe_divide(i.net_income,   i.revenue)
         )

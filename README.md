@@ -1,10 +1,10 @@
 # Sobre
 
-`icvm` é uma biblioteca Python que calcula os indicadores de análise
-fundamentalista de companhias registradas na CVM.
+`ibr` é uma biblioteca Python que calcula os indicadores de análise
+fundamentalista de companhias brasileiras registradas na CVM.
 
 O motivo para a criação dessa biblioteca é que coisas da CVM devem
-pertencer à biblioteca [cvm][cvm-lib], ao passo que indicadores fundamentalistas,
+pertencer à biblioteca [cvm][repo-pycvm], ao passo que indicadores fundamentalistas,
 na medida em que são algo maior do que a CVM, devem ser separados.
 
 Além do mais, indicadores de valuation dependem de dados de mercado,
@@ -19,9 +19,9 @@ O código abaixo abre um documento DFP/ITR e lista os indicadores
 financeiros das companhias nesse documento:
 
 ```py
-import icvm
+import ibr
 
-for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', (icvm.Indebtedness, icvm.Profitability, icvm.Efficiency)):
+for result in ibr.reader('/caminho/para/dfp_ou_itr.zip', (ibr.Indebtedness, ibr.Profitability, ibr.Efficiency)):
     indebtedness, profitability, efficiency = result.indicators
 
     print('----------------------------')
@@ -40,16 +40,17 @@ for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', (icvm.Indebtedness, ic
 ## Indicadores de Valuation
 
 Quanto a indicadores de valuation, eles precisam de dados de mercado. Visto
-que eles não são fornecidos num arquivo DFP/ITR, pois estão além do escopo
-da CVM, eles devem ser obtidos da internet ou alguma outra fonte.
+que dados de mercado não são fornecidos num arquivo DFP/ITR, pois isso está
+além do escopo da CVM, esses dados devem ser obtidos da internet ou alguma
+outra fonte.
 
-Para isso, a biblioteca `icvm` fornece a classe `YfinanceValuation`, que é
-baseada nas bibliotecas [yfinance][yfinance-lib] e [b3][b3-lib]:
+Para isso, a biblioteca `ibr` fornece a classe `YfinanceValuation`, que é
+baseada nas bibliotecas [b3][repo-pybov] e [yfinance][repo-yfinance]:
 
 ```py
-import icvm
+import ibr
 
-for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', [icvm.YfinanceValuation]):
+for result in ibr.reader('/caminho/para/dfp_ou_itr.zip', [ibr.YfinanceValuation]):
     print('------------------')
     print('Companhia:', result.dfpitr.company_name)
     
@@ -61,10 +62,10 @@ for result in icvm.reader('/caminho/para/dfp_ou_itr.zip', [icvm.YfinanceValuatio
 ```
 
 Repare que os indicadores de valuation retornam uma lista, pois é possível
-que uma companhia tenha mais de instrumento. Um exemplo disso é a companhia
-Eletrobrás, que possui três instrumentos na B3: ELET3, ELET5 e ELET6. Como
-cada instrumento resulta em indicadores de valuation diferentes, `valuations`
-teria 3 objetos para a companhia Eletrobrás.
+que uma companhia tenha mais de um valor mobiliário. Um exemplo disso é a
+companhia Eletrobrás, que possui três valores mobiliários na B3: ELET3,
+ELET5 e ELET6. Como cada valor mobiliário resulta em indicadores de valuation
+diferentes, `valuations` teria 3 objetos para a companhia Eletrobrás.
 
 Outro ponto é que usar `YfinanceValuation` é bastante lento. Isso porque a
 biblioteca `yfinance` leva um tempo para obter o total de ações em circulação
@@ -79,6 +80,6 @@ python -m samples.financial '/caminho/para/dfp_ou_itr.zip'
 python -m samples.valuation '/caminho/para/dfp_ou_itr.zip'
 ```
 
-  [cvm-lib]: <https://github.com/callmegiorgio/cvm>
-  [yfinance-lib]: <https://pypi.org/project/yfinance/>
-  [b3-lib]: <https://github.com/callmegiorgio/b3>
+  [repo-pycvm]: <https://github.com/callmegiorgio/pycvm>
+  [repo-pybov]: <https://github.com/callmegiorgio/pybov>
+  [repo-yfinance]: <https://pypi.org/project/yfinance/>

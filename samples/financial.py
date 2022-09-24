@@ -1,8 +1,7 @@
-import icvm
+import ibr
 import pandas as pd
 import time
 import sys
-import zipfile
 
 def print_indicator(i):
     print(f'\n{i.__class__.__name__}:')
@@ -16,7 +15,7 @@ def main():
     filepath = sys.argv[1]
 
     try:
-        for result in icvm.reader(filepath, (icvm.Indebtedness, icvm.Profitability, icvm.Efficiency)):
+        for result in ibr.reader(filepath, (ibr.Indebtedness, ibr.Profitability, ibr.Efficiency)):
             indebtedness, profitability, efficiency = result.indicators
 
             print('----------------------------')

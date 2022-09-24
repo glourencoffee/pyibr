@@ -1,3 +1,6 @@
 __pycache__
 .vscode
-icvm.egg-info
+pyibr.egg-info
+build
+dist
+data
